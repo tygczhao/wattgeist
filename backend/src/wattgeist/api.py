@@ -111,7 +111,7 @@ async def create_household(
             raise HTTPException(422, f"Invalid import settings: {exc}") from None
     assistant = None
     if use_ai and cfg is None and llm_available():
-        # 导入复核由 Kiro Crew 的 format-reviewer agent 完成；仅在用户未手动指定设置且本机可用 kirocrew 时启用
+        # The review is the Kiro Crew format-reviewer agent; only when the user set no config and kirocrew is present
         from .llm.parse_assist import CrewFormatAssistant
 
         assistant = CrewFormatAssistant()
@@ -196,7 +196,7 @@ def post_ask(hid: str, body: AskIn) -> StreamingResponse:
     """Stream assistant events as NDJSON; the frontend parses one line at a time."""
     h = _home(hid)
     if not llm_available():
-        # 503 文案指向 Kiro Crew：Séance 只能由 wattgeist-night-watch app 的 seance agent 回答，没有其他模型后端
+        # Points at Kiro Crew: only the wattgeist-night-watch app's seance agent can answer; there is no other model
         raise HTTPException(503, "AI is not configured on this server (install Kiro Crew and the WattGeist app).")
     from .llm.assistant import ask
 

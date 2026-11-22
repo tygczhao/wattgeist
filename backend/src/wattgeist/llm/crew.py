@@ -23,23 +23,24 @@ from .. import service
 
 log = logging.getLogger(__name__)
 
-# 默认的 Crew app 名；agent 在 Crew 里的全名是 "<app>--<agent文件里的name>"（与 crew-app README 中 kirocrew chat 的示例一致）
+# Default Crew app name. Crew names an app's agent "<app>--<name in the agent file>", as in the crew-app README
 DEFAULT_APP = "wattgeist-night-watch"
 SEANCE_AGENT = "seance"
 FORMAT_REVIEW_AGENT = "format-reviewer"
-# stderr 只保留尾部用于报错：kirocrew 失败时会把完整 traceback 打到 stderr，全部保留既没用也可能很大
+# Keep only the tail of stderr for errors: a failing kirocrew prints a full traceback there, which can be large
 _STDERR_TAIL_BYTES = 8192
 
 
 class CrewError(RuntimeError):
-    """kirocrew 不可用、超时或以非零码退出。message 面向日志，不直接展示给用户。"""
+    """kirocrew is missing, timed out or exited non-zero. The message is for the log, not shown to users as is."""
 
 
 def kirocrew_bin() -> str | None:
-    """定位 kirocrew 可执行文件。
+    """Locate the kirocrew executable.
 
-    WATTGEIST_KIROCREW 显式指定时只认它（测试用它指向假的 kirocrew 脚本，部署时可指向非标准安装位置）；
-    否则查 PATH，再查官方安装脚本的默认位置 ~/.local/bin，因为以服务方式启动的后端 PATH 往往不含该目录。
+    When WATTGEIST_KIROCREW is set, only that path is used (tests point it at a fake kirocrew script; deployments can
+    point it at a non-standard install). Otherwise look on PATH, then in ~/.local/bin, where the official installer
+    puts it, because a backend started as a service often runs without that directory on PATH.
     """
     explicit = os.environ.get("WATTGEIST_KIROCREW")
     candidates = [explicit] if explicit else [shutil.which("kirocrew"), str(Path.home() / ".local/bin/kirocrew")]
@@ -54,7 +55,7 @@ def agent_id(name: str) -> str:
 
 
 def llm_available() -> bool:
-    # WATTGEIST_DISABLE_AI=1 是硬开关：MCP server 和定时任务都会设置它，防止它们在 Crew 里间接触发 agent 调用
+    # WATTGEIST_DISABLE_AI=1 is a hard switch: the MCP server and the cron job set it so they never start an agent
     if os.environ.get("WATTGEIST_DISABLE_AI") == "1":
         return False
     return kirocrew_bin() is not None
@@ -62,7 +63,7 @@ def llm_available() -> bool:
 
 def _explain(stderr: bytes, returncode: int | None) -> str:
     text = stderr.decode("utf-8", "replace").strip()
-    # 未登录 Kiro 是最常见的部署问题（kirocrew 抛 AcpAuthRequired），单独给出可操作的提示
+    # Being signed out of Kiro is the most common set-up problem (AcpAuthRequired), so it gets an actionable message
     if "Not signed in" in text or "AcpAuthRequired" in text:
         return "Kiro Crew is not signed in to Kiro"
     last = text.splitlines()[-1] if text else ""
@@ -70,13 +71,17 @@ def _explain(stderr: bytes, returncode: int | None) -> str:
 
 
 def stream_agent(agent: str, message: str, timeout: float) -> Iterator[str]:
-    """运行一个 Crew agent 并逐块产出其回答文本。
+    """Run a Crew agent and yield its answer text chunk by chunk.
 
-    - 数据来源：kirocrew chat -m 只把模型文本块原样打印到 stdout，错误写 stderr 并以退出码 1 结束；工具调用不打印，
-      非交互模式下也无法人工批准，所以 agent 能用的工具必须在 agent JSON 的 allowedTools 中预先放行。
-    - 同时用 selectors 读 stdout 和 stderr：只读 stdout 时，stderr 管道写满会让子进程阻塞，形成死锁。
-    - 终止条件：两个管道都 EOF 后检查退出码；超过 timeout（整次调用的总时长，而非单次读取）则视为失败。
-    - 调用方中途放弃迭代（如浏览器断开导致 StreamingResponse 关闭生成器）时，finally 会杀掉子进程，避免遗留 agent 会话。
+    - Source: `kirocrew chat -m` prints only the model's text chunks to stdout; errors go to stderr with exit code 1.
+      Tool calls are not printed and cannot be approved by a person in this non-interactive mode, so every tool the
+      agent may use must be pre-approved in the agent JSON's allowedTools.
+    - stdout and stderr are read together with selectors: reading stdout alone would deadlock once the child blocks
+      on a full stderr pipe.
+    - Termination: after both pipes reach EOF the exit code is checked; exceeding `timeout` (for the whole call, not
+      one read) is a failure.
+    - If the caller stops iterating (for example the browser disconnects and StreamingResponse closes the
+      generator), `finally` kills the child so no agent session is left running.
     """
     exe = kirocrew_bin()
     if exe is None:
@@ -84,7 +89,8 @@ def stream_agent(agent: str, message: str, timeout: float) -> Iterator[str]:
     data = service.data_dir()
     env = {
         **os.environ,
-        # 把 Web 后端的数据目录传给 agent 的 MCP server，使网页上传的家庭对 agent 可见（launcher 用 setdefault 读取它）
+        # Hand the web backend's data dir to the agent's MCP server so uploaded homes are visible to it
+        # (bin/mcp_launcher.py keeps an explicit WATTGEIST_DATA_DIR)
         "WATTGEIST_DATA_DIR": str(data),
         "NO_COLOR": "1",
         "PYTHONIOENCODING": "utf-8",
@@ -95,14 +101,15 @@ def stream_agent(agent: str, message: str, timeout: float) -> Iterator[str]:
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
-        # 不在仓库根目录运行：kiro-cli 会加载工作目录下的 .kiro/ steering，那是给开发用的，不应混进产品 agent 的上下文
+        # Not the repository root: kiro-cli loads .kiro/ steering from its working directory, which is for development
+        # and must not reach the product agent's context
         cwd=data,
     )
     assert proc.stdout is not None and proc.stderr is not None
     sel = selectors.DefaultSelector()
     sel.register(proc.stdout, selectors.EVENT_READ)
     sel.register(proc.stderr, selectors.EVENT_READ)
-    # 增量解码：一个多字节 UTF-8 字符可能被拆在两次 read 之间，逐块直接 decode 会产生乱码
+    # Incremental decoding: a multi-byte UTF-8 character can be split across two reads
     decoder = codecs.getincrementaldecoder("utf-8")("replace")
     err = bytearray()
     deadline = time.monotonic() + timeout
@@ -137,5 +144,5 @@ def stream_agent(agent: str, message: str, timeout: float) -> Iterator[str]:
 
 
 def run_agent(agent: str, message: str, timeout: float) -> str:
-    """非流式调用：收集完整回答，供导入复核这类需要整段 JSON 的场景使用。"""
+    """Non-streaming call: collect the whole answer, for the import review, which needs one complete JSON reply."""
     return "".join(stream_agent(agent, message, timeout))

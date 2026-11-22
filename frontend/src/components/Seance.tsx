@@ -1,6 +1,6 @@
 // Séance: Q&A answered by the Kiro Crew "seance" agent, which reads the household only through the WattGeist MCP tools.
 // The history lives in the browser and the plain-text turns are sent back in full on every request.
-// 后端经 kirocrew chat 调用 agent，只能拿到流式文本，拿不到工具调用事件，所以这里不再展示工具调用标签。
+// The backend runs the agent through `kirocrew chat`, which streams text but no tool-call events, so no tool chips.
 import { useEffect, useRef, useState } from "react";
 import { ask } from "../lib/api";
 
@@ -43,7 +43,7 @@ export function Seance({ id, ai, name }: { id: string; ai: boolean; name: string
       <div className="card">
         <h2>The séance needs a medium</h2>
         <p className="secondary" style={{ marginTop: 8 }}>
-          {/* AI 只来自 Kiro Crew：提示用户安装并登录 Kiro Crew、装上 WattGeist app，而不是配置模型 API key */}
+          {/* AI comes only from Kiro Crew: ask for Kiro Crew, a Kiro sign-in and the WattGeist app, not an API key */}
           This server cannot reach Kiro Crew, so questions are switched off. Everything else works without it.
           Install Kiro Crew, sign in to Kiro and install the <code>wattgeist-night-watch</code> app, then restart to
           ask questions about this home.

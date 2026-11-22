@@ -20,7 +20,7 @@ from .crew import FORMAT_REVIEW_AGENT, run_agent
 
 log = logging.getLogger(__name__)
 
-# 导入是同步请求，用户在页面上等待；复核超时后 pipeline 会保留启发式结果，所以这里宁可短一些
+# The import is a synchronous request with the user waiting; on timeout the pipeline keeps the heuristic result
 REVIEW_TIMEOUT_S = 120.0
 
 
@@ -31,11 +31,11 @@ class _Proposal(BaseModel):
 
 
 def _extract_json(text: str) -> dict:
-    """从 agent 回答里取出 JSON 对象。
+    """Extract the JSON object from the agent's reply.
 
-    原先直连模型 API 时由 structured outputs 保证输出符合 schema；Crew agent 只能靠 prompt 约束，
-    模型偶尔仍会包一层 ``` 代码块或前后带一句话，所以取第一个 "{" 到最后一个 "}" 之间的内容再解析。
-    解析或校验失败直接抛异常：pipeline 会捕获并保留启发式结果（需求 3.4）。
+    A Crew agent's output is constrained only by its prompt, not by API-enforced structured outputs, so a model may
+    still wrap the object in a ``` fence or add a sentence around it. Parse from the first "{" to the last "}".
+    Parse or validation errors are raised: the pipeline catches them and keeps the heuristic result (req. 3.4).
     """
     start, end = text.find("{"), text.rfind("}")
     if start < 0 or end <= start:
@@ -54,7 +54,7 @@ class CrewFormatAssistant:
             "columns": columns,
             "current_guess": current.model_dump(),
             "problems": problems,
-            # schema 随请求发送而不是写死在 agent prompt 里：ParseConfig 一改，agent 看到的字段约束自动同步
+            # Sent with each request rather than written into the agent prompt, so it follows every ParseConfig change
             "reply_schema": _Proposal.model_json_schema(),
         }
         reply = run_agent(FORMAT_REVIEW_AGENT, json.dumps(payload, ensure_ascii=False), REVIEW_TIMEOUT_S)

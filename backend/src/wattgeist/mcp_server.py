@@ -26,7 +26,7 @@ mcp = MCPServer(
     ),
 )
 _booted = False
-# 工具参数来自 agent 的模型输出，属于不可信输入；日期必须是严格的 YYYY-MM-DD，避免把任意字符串传进分析层
+# Tool arguments come from model output and are untrusted; dates must be strict YYYY-MM-DD before analysis sees them
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -83,7 +83,7 @@ def get_vampire_report(household_id: str) -> str:
     r = service.vampire_report(_home(household_id))
     r.pop("daily", None)
     r.pop("catalogue", None)
-    # 只保留前 15 个闹鬼夜：Séance agent 也走这个工具，整年的列表会无谓地撑大 agent 上下文（原 llm/tools.py 的同一限制）
+    # At most 15 haunted nights: the Séance agent uses this tool too, and a whole year's list only bloats its context
     r["haunted_nights"] = r["haunted_nights"][:15]
     return json.dumps(r, default=str)
 
@@ -91,7 +91,7 @@ def get_vampire_report(household_id: str) -> str:
 @mcp.tool()
 def get_monthly_usage(household_id: str) -> str:
     """Electricity use per calendar month in kWh, with the share of readings present that month."""
-    # Séance 迁移到 Kiro Crew agent 后，原先只在后端内置工具集里的月度用量工具补到 MCP，保证 agent 可用的工具不缩水
+    # Added when the Séance moved to a Kiro Crew agent, so the agent keeps every tool the old built-in set had
     return json.dumps(profile.monthly(_home(household_id).series))
 
 
@@ -99,7 +99,7 @@ def get_monthly_usage(household_id: str) -> str:
 def get_day_detail(household_id: str, date: str) -> str:
     """Half-hourly average power (W) for one local date (YYYY-MM-DD)."""
     d = date[:10]
-    # 先做格式校验再用 fromisoformat 校验日期本身合法（如拒绝 2024-02-30），非法输入以 ValueError 返回给 agent
+    # Check the format, then that the date exists (fromisoformat rejects 2024-02-30); errors go back as ValueError
     if not _DATE.match(d):
         raise ValueError("date must be YYYY-MM-DD")
     _date.fromisoformat(d)

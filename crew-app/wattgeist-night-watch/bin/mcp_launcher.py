@@ -13,10 +13,10 @@ import sys
 from pathlib import Path
 
 APP_ROOT = Path(__file__).resolve().parent.parent
-# 数据目录与 WattGeist Web 后端共用（默认 ~/.wattgeist，与 service.data_dir() 的默认值一致）。
-# 原因：Web 端的 Séance 和导入复核改由本 app 的 Kiro Crew agent 实现，agent 通过本 MCP server 读取家庭数据；
-# 若仍用 app 私有的 data 目录，用户在网页上传的家庭对 agent 不可见，只能看到内置 demo。
-# 显式设置 WATTGEIST_DATA_DIR 时以它为准（Web 后端调用 kirocrew 时也会传同一个值）。
+# The data directory is shared with the WattGeist web backend (default ~/.wattgeist, as in service.data_dir()).
+# Why: the web app's Séance and import review are this app's Kiro Crew agents, which read households through this
+# MCP server. With an app-private data directory, homes uploaded in the browser would be invisible to the agents.
+# An explicit WATTGEIST_DATA_DIR wins (the web backend passes its own when it runs kirocrew).
 SHARED_DATA_DIR = Path.home() / ".wattgeist"
 
 

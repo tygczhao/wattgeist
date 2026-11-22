@@ -16,15 +16,15 @@ import types
 import pytest
 
 from tests.unit.test_ingest_requirements import _unlabelled_csv
-from tests.unit.test_ingest_requirements import truth as truth  # noqa: F401  复用同一个 truth fixture
+from tests.unit.test_ingest_requirements import truth as truth  # noqa: F401  reuse the same truth fixture
 from wattgeist import service
 from wattgeist.ingest.config import ParseConfig
 from wattgeist.ingest.pipeline import import_meter_file
 from wattgeist.llm import assistant, crew
 from wattgeist.llm.parse_assist import CrewFormatAssistant
 
-# 假 kirocrew：把收到的 argv 和关键环境变量写入 FAKE_LOG，再按 FAKE_* 环境变量决定输出、退出码或挂起，
-# 模拟真实 CLI 的行为约定：回答走 stdout，错误走 stderr 并以非零码退出
+# Fake kirocrew: writes its argv and key environment to FAKE_LOG, then prints, exits or hangs as FAKE_* say,
+# following the real CLI's contract: the answer on stdout, errors on stderr with a non-zero exit code
 _FAKE = textwrap.dedent(
     """\
     #!{python}
@@ -73,13 +73,13 @@ def test_ai_is_available_only_with_a_kirocrew_binary(fake_crew, monkeypatch, tmp
 
 
 def test_agent_runs_through_kirocrew_chat_with_the_shared_data_dir(fake_crew):
-    # 多字节字符被拆在两次写出之间，验证增量解码不会产生乱码
+    # A multi-byte character split across two writes must still decode cleanly
     fake_crew("The floor is 1", "20 W 👻", "\n")
     out = list(crew.stream_agent("seance", "hello", timeout=30))
     assert "".join(out) == "The floor is 120 W 👻\n"
     call = fake_crew.calls()
     assert call["argv"] == ["chat", "--agent", "wattgeist-night-watch--seance", "-m", "hello"]
-    # agent 的 MCP server 必须读到与 Web 后端相同的数据目录，且不在仓库目录下运行（避免加载开发用 .kiro steering）
+    # The agent's MCP server must see the web backend's data dir, and not run in the repo (no development steering)
     assert call["data_dir"] == str(service.data_dir())
     assert os.path.realpath(call["cwd"]) == os.path.realpath(service.data_dir())
 
@@ -110,9 +110,13 @@ def _home():
 def test_seance_streams_text_then_done_and_sends_id_history_and_question(fake_crew, monkeypatch):
     monkeypatch.setattr(service, "household_card", lambda h: {"id": h.id, "always_on_w": 262})
     fake_crew("Your floor ", "is 262 W.")
-    history = [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "Boo."}, {"role": "tool", "content": "x"}]
+    history = [
+        {"role": "user", "content": "hi"},
+        {"role": "assistant", "content": "Boo."},
+        {"role": "tool", "content": "x"},
+    ]
     events = list(assistant.ask(_home(), "Is that high?", history))
-    # 管道可能把两次写出合并成一块，所以只断言事件类型序列和拼接后的文本
+    # The pipe may merge two writes into one chunk, so assert the event types and the joined text only
     assert {e["type"] for e in events[:-1]} == {"text"} and events[-1] == {"type": "done"}
     assert "".join(e["delta"] for e in events[:-1]) == "Your floor is 262 W."
     msg = fake_crew.calls()["argv"][-1]
@@ -131,8 +135,9 @@ def test_seance_failure_is_a_short_message_without_a_traceback(fake_crew, monkey
 
 def test_format_reviewer_reply_is_validated_and_keeps_the_detected_file_kind(fake_crew):
     current = ParseConfig(file_kind="csv", value_column="col_a")
-    reply = {"config": {**current.model_dump(), "file_kind": "excel", "value_column": "col_c"}, "notes": ["Read col_c.", " "]}
-    # 模型偶尔会包一层代码块并附一句话，解析必须容忍
+    config = {**current.model_dump(), "file_kind": "excel", "value_column": "col_c"}
+    reply = {"config": config, "notes": ["Read col_c.", " "]}
+    # A model sometimes wraps the object in a code fence with a sentence; parsing must tolerate that
     fake_crew("Here you go:\n```json\n", json.dumps(reply), "\n```\n")
     cfg, notes = CrewFormatAssistant().propose(["col_a,col_b,col_c"], ["col_a", "col_b", "col_c"], current, ["low"])
     assert cfg.value_column == "col_c" and cfg.file_kind == "csv"

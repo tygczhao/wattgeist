@@ -20,8 +20,8 @@ from pathlib import Path
 from kiro_crew.cron_script import Report, Skip
 
 APP_ROOT = Path(__file__).resolve().parent.parent
-# 与 bin/mcp_launcher.py 保持同一个默认数据目录：定时任务写入的 octopus-home 必须能被 night-watch agent
-# 通过 MCP 读到，两处默认值一旦不一致，命令栏的 "Was last night haunted?" 就会找不到这个家庭。
+# Same default data directory as bin/mcp_launcher.py: the octopus-home this job writes must be readable by the
+# night-watch agent through MCP, or the "Was last night haunted?" command cannot find it.
 SHARED_DATA_DIR = Path.home() / ".wattgeist"
 # A household with enough history to show a haunted night when no Octopus credentials are configured yet
 DEMO_HOUSEHOLD = "haunted-semi"
