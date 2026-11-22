@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Check a new meter format against the energy rules",
+      "description": "When a fixture generator changes, ask the agent to confirm the format follows the unit, time and reading rules in energy-domain steering, and to add a property test if a new convention appears.",
+      "trigger": "PostFileSave",
+      "matcher": "backend/tests/fixtures\\.py$",
+      "action": {
+        "type": "agent",
+        "prompt": "A meter export generator in backend/tests/fixtures.py changed. Read .kiro/steering/energy-domain.md. For the changed generator, state which conventions it uses (unit, interval start or end, time zone handling, cumulative or interval, decimal separator). If it introduces a convention that no test in backend/tests covers, add a focused unit test, and if the convention is an invariant, extend backend/tests/property/test_properties.py. Do not change parser code unless a test fails."
+      },
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "source": "NRDC (2015), Home Idle Load: Devices Wasting Huge Amounts of Electricity When Not in Active Use, Table 3: top 20 idle loads, average idle load per device across a 10-home audit sample.",
+  "source_url": "https://www.nrdc.org/sites/default/files/home-idle-load-IP.pdf",
+  "devices": [
+    {"id": "set_top_box", "name": "Set-top box / DVR", "watts": 16, "kind": "vampire", "tip": "Turn off 'quick start' and use the deep standby setting, or put it on a timer plug overnight."},
+    {"id": "tv", "name": "TV", "watts": 13, "kind": "vampire", "tip": "Disable instant-on / voice wake, or switch off at the wall with the soundbar."},
+    {"id": "modem", "name": "Broadband modem", "watts": 11, "kind": "resident", "tip": "Usually worth keeping on. An all-in-one router + modem saves a box."},
+    {"id": "desktop", "name": "Desktop computer (asleep or off)", "watts": 9.5, "kind": "vampire", "tip": "Check that sleep actually happens; a power strip removes the off-mode draw."},
+    {"id": "security", "name": "Security / alarm system", "watts": 8.2, "kind": "resident", "tip": "Needed. Check the panel is not also powering an old phone line box."},
+    {"id": "audio_video", "name": "Audio / video gear (soundbar, AV receiver)", "watts": 7.5, "kind": "vampire", "tip": "Put the whole TV corner on one switched strip."},
+    {"id": "laptop", "name": "Laptop charger left plugged in", "watts": 7.1, "kind": "vampire", "tip": "Unplug when the battery is full."},
+    {"id": "printer", "name": "Printer / fax / copier", "watts": 6.3, "kind": "vampire", "tip": "Most homes print rarely: unplug it."},
+    {"id": "router", "name": "Wi-Fi router", "watts": 5.5, "kind": "resident", "tip": "Keep it, but retire extra extenders you no longer need."},
+    {"id": "networking", "name": "Other networking (extenders, switches, hubs)", "watts": 5.2, "kind": "vampire", "tip": "Each smart-home hub draws power 24/7; consolidate where you can."},
+    {"id": "alarm_clock", "name": "Alarm clock / radio", "watts": 2.9, "kind": "vampire", "tip": "Small, but it never sleeps."},
+    {"id": "cordless_phone", "name": "Cordless phone base", "watts": 2.2, "kind": "vampire", "tip": "If nobody uses the landline, unplug the base."},
+    {"id": "lighting_24_7", "name": "Lights left on 24/7 (porch, night lights)", "watts": 27, "kind": "vampire", "tip": "A timer or dusk sensor fixes this for good."},
+    {"id": "aquarium", "name": "Aquarium equipment", "watts": 19, "kind": "resident", "tip": "Pumps must run; LED lighting and an efficient heater cut the rest."},
+    {"id": "fan", "name": "Fan left running", "watts": 110, "kind": "vampire", "tip": "Bathroom extractor or bedroom fan forgotten on? It shows up as a raised floor."},
+    {"id": "recirc_pump", "name": "Hot water recirculation pump", "watts": 70, "kind": "vampire", "tip": "Fit a timer or demand switch so it only runs when needed."},
+    {"id": "pond", "name": "Pond pump / filter", "watts": 110, "kind": "resident", "tip": "Needed for fish, but an efficient pump can halve the draw."},
+    {"id": "fridge_freezer", "name": "Fridge-freezer (average while cycling)", "watts": 30, "kind": "resident", "estimate": true, "tip": "Estimate from typical energy-label use of 150 to 450 kWh a year. Older or American-style units sit at the top of that range."}
+  ]
+}

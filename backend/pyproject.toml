@@ -1,0 +1,53 @@
+[project]
+name = "wattgeist"
+version = "0.1.0"
+description = "WattGeist: a resurrected home energy monitor that hunts vampire loads in any smart meter export."
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pandas>=2.2",
+  "numpy>=2.0",
+  "pydantic>=2.8",
+  "python-multipart>=0.0.9",
+  "openpyxl>=3.1",
+  "defusedxml>=0.7",
+  "mcp>=2.3,<3",
+  "httpx[socks]>=0.27",
+]
+
+[project.scripts]
+wattgeist-api = "wattgeist.api:main"
+wattgeist-mcp = "wattgeist.mcp_server:main"
+wattgeist-nightwatch = "wattgeist.nightwatch:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "hypothesis>=6.100", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wattgeist"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["property: property-based tests (Hypothesis)"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+# List the rule set explicitly so a developer's global ruff config cannot change results; Kiro hooks and CI agree
+select = ["E4", "E7", "E9", "F", "B", "BLE", "UP", "I"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's File()/Form() dependency declarations must live in parameter defaults; that is the framework's contract, not a mutable default
+extend-immutable-calls = ["fastapi.File", "fastapi.Form"]
+
+[tool.ruff.lint.per-file-ignores]
+# Broad exception handling in tests and offline scripts skips bad data rows and never runs on the request path
+"tests/**" = ["BLE001"]

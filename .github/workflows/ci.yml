@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check src tests ../scripts
+      - run: uv run pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc -b
+      - run: npx vitest run
+      - run: npx vite build
+
+  crew-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Manifest and agent files are valid JSON
+        run: |
+          python3 -m json.tool crew-app/wattgeist-night-watch/app.json > /dev/null
+          for f in crew-app/wattgeist-night-watch/agents/*.json; do python3 -m json.tool "$f" > /dev/null; done
+          for f in .kiro/agents/*.json .kiro/hooks/*.json .kiro/settings/mcp.json; do python3 -m json.tool "$f" > /dev/null; done
+      - run: bash -n crew-app/build.sh
+      - run: python3 -m py_compile crew-app/wattgeist-night-watch/bin/night_watch_cron.py crew-app/wattgeist-night-watch/bin/mcp_launcher.py

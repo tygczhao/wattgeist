@@ -1,0 +1,28 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run the matching tests after a backend file is saved",
+      "description": "Keeps the importer and estimators honest: any change to ingest/, analysis/ or tariffs/ reruns unit and property tests for that area.",
+      "trigger": "PostFileSave",
+      "matcher": "backend/src/wattgeist/(ingest|analysis|tariffs)/.*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "cd backend && uv run pytest -q -x tests/unit tests/property 2>&1 | tail -15"
+      },
+      "timeout": 180,
+      "enabled": true
+    },
+    {
+      "name": "Lint Python after save",
+      "trigger": "PostFileSave",
+      "matcher": "backend/.*\\.py$",
+      "action": {
+        "type": "command",
+        "command": "cd backend && uv run ruff check src tests --output-format concise 2>&1 | tail -20"
+      },
+      "timeout": 60,
+      "enabled": true
+    }
+  ]
+}

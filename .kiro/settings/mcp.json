@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "wattgeist": {
+      "command": "uv",
+      "args": ["run", "--project", "backend", "wattgeist-mcp"],
+      "env": { "WATTGEIST_DISABLE_AI": "1" },
+      "disabled": false,
+      "autoApprove": ["list_households", "get_overview", "get_vampire_report", "get_day_detail", "compare_tariffs", "list_tariffs"]
+    }
+  }
+}

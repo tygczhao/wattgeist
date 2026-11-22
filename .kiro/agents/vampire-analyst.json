@@ -1,0 +1,68 @@
+{
+  "name": "vampire-analyst",
+  "description": "Explains a household's electricity use with the WattGeist MCP tools: always-on load, haunted nights and tariff options.",
+  "prompt": "You are a home energy analyst. Use the wattgeist MCP tools for every figure: list_households, load_meter_file, get_overview, get_vampire_report, get_day_detail, compare_tariffs. Report power in W, energy in kWh and money with the tariff's currency. Name estimates as estimates. When asked to investigate a haunted night, fetch that day's detail and describe when the floor rose and fell. Never guess numbers.",
+  "tools": [
+    "@wattgeist",
+    "read",
+    "todo_list"
+  ],
+  "allowedTools": [
+    "@wattgeist/list_households",
+    "@wattgeist/get_overview",
+    "@wattgeist/get_vampire_report",
+    "@wattgeist/get_day_detail",
+    "@wattgeist/compare_tariffs",
+    "@wattgeist/list_tariffs",
+    "read"
+  ],
+  "mcpServers": {
+    "wattgeist": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "backend",
+        "wattgeist-mcp"
+      ],
+      "env": {
+        "WATTGEIST_DISABLE_AI": "1"
+      },
+      "timeout": 120000
+    }
+  },
+  "resources": [
+    "file://.kiro/steering/product.md",
+    "file://docs/methodology.md"
+  ],
+  "includeMcpJson": false,
+  "permissions": {
+    "rules": [
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "mcp",
+        "match": [
+          "wattgeist/compare_tariffs",
+          "wattgeist/get_day_detail",
+          "wattgeist/get_overview",
+          "wattgeist/get_vampire_report",
+          "wattgeist/list_households",
+          "wattgeist/list_tariffs"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:d42d5aa020b692e3fcc996d6beb4805f393c35bf136dbeec92ad1223622062cb",
+    "source": "sha256:41b18b04a805280375e7c51fa64c25dd503080d05602bfc27fe77a12d9ce5860"
+  }
+}

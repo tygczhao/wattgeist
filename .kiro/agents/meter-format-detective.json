@@ -1,0 +1,74 @@
+{
+  "name": "meter-format-detective",
+  "description": "Adds support for a new smart meter export format: writes a fixture generator from a real sample, a failing test, then the smallest parser or inference change that passes.",
+  "prompt": "You extend WattGeist's meter importer. Work test-first. 1) From the sample the user gives you, write a generator in backend/tests/fixtures.py that renders the shared truth series in that format, following the conventions you observe (unit, interval start or end, time zone, cumulative or interval, decimal separator, preamble). 2) Add an end-to-end test in backend/tests/unit/test_ingest_formats.py that requires score >= 95, total energy within 0.2% and the always-on floor within 15 W. 3) Run it and confirm it fails for the right reason. 4) Make the smallest change in backend/src/wattgeist/ingest that passes, never special-casing a supplier name unless a preset is unavoidable. 5) Run the whole suite. Never send meter data anywhere. Never edit files under backend/src/wattgeist/data.",
+  "tools": [
+    "glob",
+    "grep",
+    "read",
+    "shell",
+    "todo_list",
+    "write"
+  ],
+  "allowedTools": [
+    "read",
+    "grep",
+    "glob",
+    "todo"
+  ],
+  "toolsSettings": {
+    "shell": {
+      "allowedCommands": [
+        "cd backend && uv run pytest.*",
+        "uv run pytest.*",
+        "uv run ruff.*"
+      ]
+    },
+    "write": {
+      "allowedPaths": [
+        "backend/src/wattgeist/ingest/**",
+        "backend/tests/**"
+      ]
+    }
+  },
+  "resources": [
+    "file://.kiro/steering/energy-domain.md",
+    "file://.kiro/steering/tech.md",
+    "file://.kiro/specs/meter-import/requirements.md",
+    "file://.kiro/specs/meter-import/design.md"
+  ],
+  "includeMcpJson": false,
+  "permissions": {
+    "rules": [
+      {
+        "capability": "shell",
+        "match": [
+          "uv run pytest*",
+          "uv run ruff*"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "fs_write",
+        "match": [
+          "backend/src/wattgeist/ingest/**",
+          "backend/tests/**"
+        ],
+        "effect": "allow"
+      },
+      {
+        "capability": "fs_read",
+        "effect": "allow"
+      },
+      {
+        "capability": "skill",
+        "effect": "allow"
+      }
+    ]
+  },
+  "kiroUpgrade": {
+    "revision": 2,
+    "fingerprint": "sha256:6ec5d1265b4563e4198bbe6efd9b93655139a692c4070f764c55c12b83c5a216",
+    "source": "sha256:e1c775b4ff3306eb7e818d8d3283d3d0681c533802ba57128b8fc22e346cdf03"
+  }
+}

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+backend/.venv/
+backend/.pytest_cache/
+backend/.hypothesis/
+backend/.ruff_cache/
+*.egg-info/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Crew app: backend is copied in by crew-app/build.sh
+crew-app/wattgeist-night-watch/backend/
+crew-app/wattgeist-night-watch/data/
+
+# Local data
+.wattgeist/
+*.env
+.env*
+
+# NOTE: the .kiro/ directory is part of the submission and must stay committed.
+
+# TypeScript incremental build info
+*.tsbuildinfo

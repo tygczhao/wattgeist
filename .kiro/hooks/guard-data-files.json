@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Protect generated data files",
+      "description": "benchmark.json, demo/*.csv.gz and tariffs_uk.json are produced by scripts. Block hand edits so the London benchmark and demo homes always match the production estimator.",
+      "trigger": "PreToolUse",
+      "matcher": "write",
+      "action": {
+        "type": "command",
+        "command": "python3 scripts/guard_generated.py"
+      },
+      "timeout": 10,
+      "enabled": true
+    }
+  ]
+}

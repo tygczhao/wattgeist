@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Keep specs and code in sync",
+      "description": "At the end of a turn that touched backend code, ask the agent to tick off or add tasks in the matching spec and to check every Correctness Property still has a test.",
+      "trigger": "Stop",
+      "action": {
+        "type": "agent",
+        "prompt": "If you changed files under backend/src in this turn, open the spec under .kiro/specs whose design.md lists those modules. Mark finished tasks with [x], add tasks for new behaviour with _Requirements_ references, and confirm every 'Property N' in design.md has a test in backend/tests/property. Report any requirement without a test."
+      },
+      "enabled": true
+    }
+  ]
+}

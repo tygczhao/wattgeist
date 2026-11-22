@@ -1,0 +1,126 @@
+{
+  "name": "wattgeist-night-watch",
+  "version": "0.1.0",
+  "displayName": "WattGeist Night Watch",
+  "description": "Every morning, checks last night's smart meter readings for haunted nights (a home that never powered down) and tells you on your phone. Also hosts the agents behind the WattGeist web app's Séance and import review.",
+  "author": "WattGeist",
+  "license": "MIT",
+  "minKiroCrewVersion": "0.8.0",
+  "tags": [
+    "energy",
+    "smart-meter",
+    "home",
+    "kiroween"
+  ],
+  "highlights": [
+    "Reads your Octopus Energy half-hourly usage every morning",
+    "Spots nights when the always-on floor rose, with the time and the cost",
+    "Ask the Night Watch agent follow-up questions from Slack, Telegram or Discord"
+  ],
+  "iconPath": "assets/icon.png",
+  "agents": [
+    "agents/night-watch.json",
+    "agents/seance.json",
+    "agents/format-reviewer.json"
+  ],
+  "skills": [
+    "skills/vampire-hunting"
+  ],
+  "crons": [
+    {
+      "name": "morning-night-watch",
+      "cron_expr": "15 7 * * *",
+      "timezone": "Europe/London",
+      "strict_schedule": true,
+      "timeout": 220,
+      "timeout_secs": 230,
+      "enabled": false,
+      "script": "bin/night_watch_cron.py:run"
+    }
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "id": "last-night",
+        "title": "Was last night haunted?",
+        "subtitle": "Night Watch checks your meter",
+        "icon": "Ghost",
+        "keywords": [
+          "energy",
+          "vampire",
+          "standby",
+          "meter"
+        ],
+        "prompt": "Use the wattgeist MCP tools. List households, then for the most recently updated one report its always-on load and whether any of the last three nights were haunted, with the excess watts, the time the floor was lowest, and the extra cost."
+      },
+      {
+        "id": "cheapest-tariff",
+        "title": "Which tariff should I be on?",
+        "icon": "PoundSterling",
+        "keywords": [
+          "octopus",
+          "agile",
+          "tariff",
+          "bill"
+        ],
+        "prompt": "Use the wattgeist MCP tools. Compare tariffs for my household with 2 kWh a day of flexible load, cheapest first, and say how much the best one saves against the single-rate tariff."
+      }
+    ]
+  },
+  "notifications": {
+    "channels": [
+      {
+        "id": "haunted-nights",
+        "name": "Haunted nights",
+        "icon": "Ghost",
+        "defaultPriority": "default"
+      }
+    ]
+  },
+  "permissions": {
+    "cron": true,
+    "network": true,
+    "storage": true,
+    "mcpTools": [
+      "wattgeist"
+    ]
+  },
+  "setup": {
+    "configSchema": {
+      "type": "object",
+      "properties": {
+        "OCTOPUS_API_KEY": {
+          "type": "string",
+          "description": "Octopus Energy API key (Dashboard > Personal details > API access)"
+        },
+        "OCTOPUS_MPAN": {
+          "type": "string",
+          "description": "13-digit electricity MPAN"
+        },
+        "OCTOPUS_SERIAL": {
+          "type": "string",
+          "description": "Electricity meter serial number"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "commands": [
+      "uv"
+    ]
+  },
+  "platform": {
+    "os": [
+      "macos",
+      "linux"
+    ]
+  },
+  "mcpServers": {
+    "wattgeist": {
+      "command": "python3",
+      "args": [
+        "bin/mcp_launcher.py"
+      ]
+    }
+  }
+}
