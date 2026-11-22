@@ -1,6 +1,6 @@
 # Devpost submission
 
-Copy these sections into the Devpost form. Replace the two bracketed links once they exist.
+Copy these sections into the Devpost form. Replace the bracketed video link once it exists.
 
 **Category:** Resurrection
 **Bonus prizes:** Best Kiro Crew App, Best Demo (automatic)
@@ -8,7 +8,8 @@ Copy these sections into the Devpost form. Replace the two bracketed links once 
 ## Links
 
 - Code: https://github.com/tygczhao/wattgeist
-- Live app: [deployment URL]
+- Live app: https://wg-fgsnboxk1397.gczhao.me (no AI on the hosted demo: the Séance and the import review run
+  on Kiro Crew, so run WattGeist next to a signed-in Kiro Crew to try them; see the README's "AI features")
 - Demo video: [YouTube URL, public, under 3 minutes]
 
 ## Tagline

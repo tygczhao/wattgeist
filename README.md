@@ -63,6 +63,9 @@ reproduces the total energy within 0.2% and scores 100.
 
 ## Run it
 
+Hosted demo: https://wg-fgsnboxk1397.gczhao.me (everything except the AI features, which need Kiro Crew; see
+"AI features" below).
+
 Requirements: Python 3.12 with [uv](https://docs.astral.sh/uv/), Node.js 22.
 
 ```bash
