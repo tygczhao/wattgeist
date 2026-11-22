@@ -35,15 +35,31 @@ END of the half hour"):
 
 - Before preamble hints, the heuristic read Wh with start marks: score 100, energy 2× the truth.
 - The AI reviewer proposed W with end marks: score 100, energy equal to the truth. (Measured with the earlier
-  direct-API adapter, before the review moved to the Kiro Crew `format-reviewer` agent; re-run pending.)
+  direct-API adapter, before the review moved to the Kiro Crew `format-reviewer` agent.)
 - The pipeline now adopts an equal-score AI proposal when the heuristic reported an ambiguity, and the heuristic
   reads such notes itself. Both paths are covered by unit tests with a stub assistant.
 
+Through the Kiro Crew `format-reviewer` agent (`POST /api/households`, Kiro Crew 0.12.0, kiro-cli 3.1.0): two
+months of the same truth in a file with columns `col_a, col_b, col_c` and no note (`col_a` a meter serial). The
+heuristic read `col_a` as Wh; the agent replied in 25 s with `value_column` `col_c` in kWh and `col_a` as the meter
+id. Result `parsed_by: ai`, score 100, 439.1 kWh against a truth of 439.073 kWh.
+
 ## Séance
 
-Question to The Haunted Semi: "Why is my always-on load so high, and which nights were haunted?"
-(Measured with the earlier direct-API adapter, before the Séance moved to the Kiro Crew `seance` agent; re-run
-pending.) The assistant called `get_overview` and `get_vampire_report`, then answered with the 114 W floor, the 67th London
+Through the Kiro Crew `seance` agent:
+
+- `kirocrew chat --agent wattgeist-night-watch--seance`, The Haunted Semi, "What is my always-on load, and what
+  happened on my worst haunted night?": 114 W, 998.6 kWh and about £265.59 a year, 67th London percentile, worst
+  night 7 April 2013 at 426 W (+310 W, 7.44 kWh), in 31 s.
+- `POST /api/households/<id>/ask` for the household uploaded above, kept in a separate `WATTGEIST_DATA_DIR`:
+  84 streamed text events in 39 s. 121.1 W, £282.08 a year, 69th percentile (median 80 W), February 212.3 kWh, all
+  equal to the API's own overview and monthly figures. The agent's MCP server saw a household that exists only in
+  the web app's data directory, so the directory reaches it through `kirocrew`.
+- The first call after `kirocrew app update` answered without tools: the installed app's backend environment was
+  still being built (about 20 s) and the MCP connection gave up. The next call worked.
+
+Earlier, with the direct-API adapter: question to The Haunted Semi: "Why is my always-on load so high, and which
+nights were haunted?" The assistant called `get_overview` and `get_vampire_report`, then answered with the 114 W floor, the 67th London
 percentile, the winter rise in the monthly floor and the weekend clustering of haunted nights (68 of 86 on
 Saturdays or Sundays). Every figure matched the tool output.
 
@@ -69,6 +85,8 @@ Installed in a local Kiro Crew 0.12.0 gateway (`kirocrew app install`, trusted a
 - `kirocrew chat --agent wattgeist-night-watch--night-watch`: the agent answered from the MCP tools with The Vampire
   Manor, 574 W, £1,337.30 a year, 98.9th percentile, worst haunted night 5 March 2013 (+415 W).
 - `app.json` also validates with Crew's own `AppManifest` parser.
+- v0.2.0 (`kirocrew app update --source ...`): 3 agents and 1 skill registered. `kirocrew cron trigger` succeeded in
+  11,222 ms with the data directory now shared at `~/.wattgeist`, and posted the 86-haunted-night notification.
 
 ## Container
 

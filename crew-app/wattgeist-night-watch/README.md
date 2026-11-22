@@ -26,7 +26,13 @@ kirocrew app install "$(pwd)/crew-app/wattgeist-night-watch"
 kirocrew config set agent.apps_trusted '["wattgeist-night-watch"]'
 kirocrew config set agent.apps_trusted_local '["wattgeist-night-watch"]'
 kirocrew app enable wattgeist-night-watch
+# build the installed app's backend environment once, so the first agent call does not wait ~20 s for it
+uv sync --quiet --project ~/.kiro/crew/apps/wattgeist-night-watch/backend
 ```
+
+To update an installed app after changing it, run `./crew-app/build.sh`, raise `version` in `app.json`, then
+`kirocrew app update wattgeist-night-watch --source "$(pwd)/crew-app/wattgeist-night-watch"` with the gateway
+running, and the `uv sync` line above again.
 
 The `morning-night-watch` job ships paused. Try it once, then resume it:
 

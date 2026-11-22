@@ -1,6 +1,6 @@
 {
   "name": "wattgeist-night-watch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "WattGeist Night Watch",
   "description": "Every morning, checks last night's smart meter readings for haunted nights (a home that never powered down) and tells you on your phone. Also hosts the agents behind the WattGeist web app's Séance and import review.",
   "author": "WattGeist",
